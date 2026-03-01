@@ -20,3 +20,11 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+#Docs
+/docs
+#Claude Settings
+/.claude
+# Markdown files
+CLAUDE.md
+PLAN.md
+CHANGELOG.md
