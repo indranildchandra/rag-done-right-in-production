@@ -76,9 +76,14 @@ Then, past the main pipeline, the notebook walks through two modern retrieval te
 
 ### Google Colab (recommended)
 
-Click the badge above. Runtime → Run all. The full pipeline finishes in **10–14 minutes on a free CPU runtime**. No GPU needed, no API keys.
+Click the badge above. Runtime → Run all. No GPU needed, no API keys.
 
-The first run scrapes and caches the corpus. Every run after that loads from cache in ~10 seconds.
+| Run type | Time | Bottleneck |
+|----------|------|------------|
+| First run (fresh scrape + embed + eval) | **~30 min** | fetch-articles (8m) + embedding (8m) + eval (12m) |
+| Cache-hit run (corpus + embeddings cached) | **~14 min** | eval loop dominates (12m); scraping + embedding skipped |
+
+The first run scrapes 1,342 articles and computes 6,215 embeddings — both are cached after that. Set `REDOWNLOAD_DATA = False` and `REGENERATE_EMBEDDINGS = False` (the defaults) to skip them on every subsequent run.
 
 ### Local
 
@@ -850,6 +855,26 @@ Versions are pinned for reproducibility on Python 3.10+ and Google Colab (as of 
 | Corpus cache | `zerodha_faqs.json` (4.3 MB) |
 | Embeddings cache | `zerodha_faqs_embeddings.npz` (~18 MB) |
 
+### Cache Files
+
+| File | Size | Contents | Regenerate |
+|------|------|----------|------------|
+| `zerodha_faqs.json` | ~4.3 MB | 1,342 articles — `url`, `title`, `body`, `category` per entry | `REDOWNLOAD_DATA = True` in `scraper-config` |
+| `zerodha_faqs_embeddings.npz` | ~18 MB | Float32 array of 6,215 chunk embeddings (384-dim), aligned to chunked corpus | `REGENERATE_EMBEDDINGS = True` in `scraper-config` |
+
+**`zerodha_faqs.json` entry shape:**
+
+```json
+{
+  "url":      "https://support.zerodha.com/category/.../articles/...",
+  "title":    "How to withdraw funds from Zerodha",
+  "body":     "To withdraw funds, navigate to Console > Funds...",
+  "category": "Fund Withdrawal"
+}
+```
+
+---
+
 ### Categories covered
 
 `account-opening` (resident, NRI, minor, corporate) · `your-zerodha-account` (profile, bank details, nomination, share transfer) · `trading-and-markets` (FAQs, margins, charts & orders, general Kite, charges, IPO, alerts) · `funds` (adding funds, withdrawal, bank accounts, mandates) · `console` (portfolio, corporate actions, ledger, reports, segments) · `mutual-funds` (understanding MF, payments & orders, NPS, fixed deposits, Coin features)
@@ -913,7 +938,7 @@ Before taking this pipeline to production, tick off:
 
 ## Slide Deck
 
-[![Scan / Click to open slides](slide-deck-qr-code.png)](https://docs.google.com/presentation/d/1NolhGaGtHTzUVNeSyr1afO0YmF9nkr0D/mobilepresent?fbclid=PAVERFWAQKok1leHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAacGrvYDVDLUi2LpsLU7o4gakb12GVDYIGnYnIaV7P2qWbIen9Eu78vqzKIRRg_aem_87H23qUBfrhNmAcuHb30yQ&slide=id.p1)
+<a href="https://docs.google.com/presentation/d/1NolhGaGtHTzUVNeSyr1afO0YmF9nkr0D/mobilepresent?fbclid=PAVERFWAQKok1leHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAacGrvYDVDLUi2LpsLU7o4gakb12GVDYIGnYnIaV7P2qWbIen9Eu78vqzKIRRg_aem_87H23qUBfrhNmAcuHb30yQ&slide=id.p1"><img src="slide-deck-qr-code.png" alt="Scan to open slides" width="180"/></a>
 
 ---
 
